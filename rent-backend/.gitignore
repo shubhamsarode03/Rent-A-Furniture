@@ -1,0 +1,25 @@
+# Secrets — never commit
+.env
+
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.eclipse/
+*.project
+*.classpath
+*.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
