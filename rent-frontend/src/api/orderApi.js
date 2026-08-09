@@ -23,4 +23,22 @@ export const orderApi = {
     const res = await api.patch(`/orders/${id}/status`, data);
     return res.data;
   },
+  retryPayment: async (id) => {
+    const res = await api.post(`/orders/${id}/retry-payment`);
+    return res.data;
+  },
+  cancelOrder: async (id, data = {}) => {
+    const res = await api.post(`/orders/${id}/cancel`, data);
+    return res.data;
+  },
+  activateOrder: async (id, data = {}) => {
+    const res = await api.post(`/orders/${id}/activate`, data);
+    return res.data;
+  },
+  downloadInvoice: async (id) => {
+    const res = await api.get(`/orders/${id}/invoice`, {
+      responseType: 'blob'
+    });
+    return res;
+  },
 };

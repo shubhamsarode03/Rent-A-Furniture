@@ -8,7 +8,6 @@ import EmptyState from '@/components/common/EmptyState';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import { formatCurrency } from '@/utils/formatCurrency';
-import toast from 'react-hot-toast';
 
 const statusMap = {
   PENDING_APPROVAL: { label: 'Pending Approval', tone: 'warning', available: false },
@@ -25,17 +24,12 @@ export default function FurnitureDetailPage() {
   const { isAuthenticated, permissions } = useAuth();
   const { addItem } = useCart();
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/furniture/${id}` } });
       return;
     }
-    try {
-      await addItem({ furnitureId: item.id });
-      toast.success(`${item.fname} added to cart`);
-    } catch {
-      toast.error('Could not add to cart');
-    }
+    addItem({ furnitureId: item.id });
   };
 
   if (loading) return <Loader />;

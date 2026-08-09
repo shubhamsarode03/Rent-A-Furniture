@@ -4,7 +4,7 @@ import Select from '@/components/common/Select';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 const PRICE_MIN = 0;
-const PRICE_MAX = 50000;
+const PRICE_MAX = 150000;
 const PRESETS = [
   { label: 'Under ₹1,000', min: 0, max: 1000 },
   { label: '₹1,000–₹5,000', min: 1000, max: 5000 },

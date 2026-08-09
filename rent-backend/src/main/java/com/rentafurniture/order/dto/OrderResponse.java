@@ -18,9 +18,20 @@ public class OrderResponse {
     private Long userId;
     private String userEmail;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryFee;
     private OrderStatus status;
     private LocalDate rentedOn;
     private LocalDate returnDate;
     private LocalDateTime createdOn;
     private List<OrderDetailsResponse> items;
+
+    // Delivery address snapshot
+    private String deliveryFullName;
+    private String deliveryPhone;
+    private String deliveryAddressLine1;
+    private String deliveryAddressLine2;
+    private String deliveryCity;
+    private String deliveryState;
+    private String deliveryPostalCode;
+    private String deliveryCountry;
 }

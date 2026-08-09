@@ -10,5 +10,9 @@ export function usePayment() {
     return await paymentApi.verifyPayment(payload);
   }, []);
 
-  return { create, verify };
+  const handleFailure = useCallback(async (razorpayOrderId) => {
+    return await paymentApi.handlePaymentFailure(razorpayOrderId);
+  }, []);
+
+  return { create, verify, handleFailure };
 }

@@ -9,6 +9,12 @@ export const paymentApi = {
     const res = await api.post('/payments/verify', data);
     return res.data;
   },
+  handlePaymentFailure: async (razorpayOrderId) => {
+    const res = await api.post('/payments/failure', razorpayOrderId, {
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    return res.data;
+  },
   // Returns a list of payments for the given order
   getPaymentsByOrder: async (orderId) => {
     const res = await api.get(`/payments/${orderId}`);

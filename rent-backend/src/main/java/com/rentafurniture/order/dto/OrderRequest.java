@@ -12,7 +12,21 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderRequest {
 
+    @NotNull(message = "Delivery address ID is required")
+    private Long addressId;
+
+    // Address snapshot fields
+    private String deliveryFullName;
+    private String deliveryPhone;
+    private String deliveryAddressLine1;
+    private String deliveryAddressLine2;
+    private String deliveryCity;
+    private String deliveryState;
+    private String deliveryPostalCode;
+    private String deliveryCountry;
+
     @NotNull(message = "Rental start date is required")
+    @FutureOrPresent(message = "Rental start date cannot be in the past")
     private LocalDate rentedOn;
 
     @NotNull(message = "Return date is required")
@@ -32,6 +46,7 @@ public class OrderRequest {
 
         @NotNull(message = "Duration is required")
         @Min(value = 1, message = "Minimum rental duration is 1 month")
+        @Max(value = 12, message = "Maximum rental duration is 12 months")
         private Integer durationMonths;
     }
 }

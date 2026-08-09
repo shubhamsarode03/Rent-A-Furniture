@@ -10,6 +10,7 @@ import com.rentafurniture.order.entity.Order;
 import com.rentafurniture.order.entity.OrderDetails;
 import com.rentafurniture.order.entity.OrderStatus;
 import com.rentafurniture.order.repository.OrderRepository;
+import com.rentafurniture.order.service.OrderService;
 import com.rentafurniture.payment.dto.PaymentCreateRequest;
 import com.rentafurniture.payment.dto.PaymentResponse;
 import com.rentafurniture.payment.dto.PaymentVerifyRequest;
@@ -43,6 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final FurnitureRepository furnitureRepository;
     private final RazorpayClient razorpayClient;
     private final PaymentMapper paymentMapper;
+    private final OrderService orderService;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -104,6 +106,12 @@ public class PaymentServiceImpl implements PaymentService {
         if (!valid) {
             payment.setStatus(PaymentStatus.FAILED);
             paymentRepository.save(payment);
+
+            // Set order status to PAYMENT_FAILED instead of leaving it as PENDING
+            Order order = payment.getOrder();
+            order.setStatus(OrderStatus.PAYMENT_FAILED);
+            orderRepository.save(order);
+
             throw new InvalidPaymentSignatureException();
         }
 
@@ -124,7 +132,28 @@ public class PaymentServiceImpl implements PaymentService {
             }
         }
 
+        // Clear cart only after successful payment
+        orderService.clearCartAfterSuccessfulPayment(userEmail);
+
         return paymentMapper.toResponse(paymentRepository.save(payment));
+    }
+
+    @Override
+    @Transactional
+    public PaymentResponse handlePaymentFailure(String razorpayOrderId, String userEmail) {
+        Payment payment = paymentRepository.findByRazorpayOrderId(razorpayOrderId)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found for Razorpay order: " + razorpayOrderId));
+
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
+
+        // Set order status to PAYMENT_FAILED
+        Order order = payment.getOrder();
+        order.setStatus(OrderStatus.PAYMENT_FAILED);
+        orderRepository.save(order);
+
+        // Cart is NOT cleared - items remain for retry
+        return paymentMapper.toResponse(payment);
     }
 
     @Override

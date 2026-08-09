@@ -1,9 +1,12 @@
 package com.rentafurniture.order.controller;
 
+import com.rentafurniture.order.dto.ActivateOrderRequest;
+import com.rentafurniture.order.dto.CancelOrderRequest;
 import com.rentafurniture.order.dto.OrderRequest;
 import com.rentafurniture.order.dto.OrderResponse;
 import com.rentafurniture.order.dto.UpdateOrderStatusRequest;
 import com.rentafurniture.order.entity.OrderStatus;
+import com.rentafurniture.order.service.InvoiceService;
 import com.rentafurniture.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,7 @@ import java.time.LocalDate;
 public class OrderController {
 
     private final OrderService orderService;
+    private final InvoiceService invoiceService;
 
     /**
      * Helper method to parse sort string in format "property,direction" or "property"
@@ -100,5 +104,36 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> completeRental(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.completeRental(id));
+    }
+
+    @PostMapping("/{id}/retry-payment")
+    @PreAuthorize("hasAnyRole('RENTER', 'LENDER')")
+    public ResponseEntity<OrderResponse> retryPayment(@PathVariable Long id,
+                                                         @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(orderService.retryPayment(id, userDetails.getUsername()));
+    }
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('RENTER', 'LENDER', 'ADMIN')")
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id,
+                                                     @RequestBody(required = false) CancelOrderRequest request,
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
+        String reason = request != null ? request.getReason() : null;
+        return ResponseEntity.ok(orderService.cancelOrder(id, userDetails.getUsername(), reason));
+    }
+
+    @PostMapping("/{id}/activate")
+    @PreAuthorize("hasAnyRole('LENDER', 'ADMIN')")
+    public ResponseEntity<OrderResponse> activateOrder(@PathVariable Long id,
+                                                       @RequestBody(required = false) ActivateOrderRequest request) {
+        String deliveryNotes = request != null ? request.getDeliveryNotes() : null;
+        return ResponseEntity.ok(orderService.activateOrder(id, deliveryNotes));
+    }
+
+    @GetMapping("/{id}/invoice")
+    @PreAuthorize("hasAnyRole('RENTER', 'LENDER', 'ADMIN')")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id,
+                                                 @AuthenticationPrincipal UserDetails userDetails) {
+        return invoiceService.generateInvoice(id, userDetails.getUsername());
     }
 }

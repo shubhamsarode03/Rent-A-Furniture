@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartApi } from '@/api/cartApi';
 import { useAuth } from './useAuth';
+import toast from 'react-hot-toast';
 
 export function useCart() {
   const queryClient = useQueryClient();
@@ -17,6 +18,11 @@ export function useCart() {
     mutationFn: cartApi.addToCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast.success('Product added to cart successfully');
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || error.response?.data?.errors?.[0] || 'Could not add to cart';
+      toast.error(message);
     },
   });
 
@@ -24,6 +30,11 @@ export function useCart() {
     mutationFn: cartApi.removeFromCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast.success('Removed from cart');
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || error.response?.data?.errors?.[0] || 'Could not remove item';
+      toast.error(message);
     },
   });
 
@@ -31,6 +42,11 @@ export function useCart() {
     mutationFn: cartApi.clearCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast.success('Cart cleared');
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || error.response?.data?.errors?.[0] || 'Could not clear cart';
+      toast.error(message);
     },
   });
 

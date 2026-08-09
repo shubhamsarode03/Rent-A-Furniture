@@ -37,6 +37,13 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.verifyPayment(request, userDetails.getUsername()));
     }
 
+    @PostMapping("/failure")
+    @PreAuthorize("hasAnyRole('RENTER', 'LENDER')")
+    public ResponseEntity<PaymentResponse> handlePaymentFailure(@RequestBody String razorpayOrderId,
+                                                                @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(paymentService.handlePaymentFailure(razorpayOrderId, userDetails.getUsername()));
+    }
+
     @GetMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('RENTER', 'LENDER') or hasRole('ADMIN')")
     public ResponseEntity<List<PaymentResponse>> getPaymentsByOrder(@PathVariable Long orderId) {

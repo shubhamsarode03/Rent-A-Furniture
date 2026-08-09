@@ -6,7 +6,6 @@ import EmptyState from '@/components/common/EmptyState';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { formatCurrency } from '@/utils/formatCurrency';
-import toast from 'react-hot-toast';
 
 export default function CartPage() {
   const { data: cart, loading, removeItem, clear } = useCart();
@@ -17,22 +16,12 @@ export default function CartPage() {
     return sum + Number(price || 0);
   }, 0);
 
-  const handleRemove = async (item) => {
-    try {
-      await removeItem(item.id);
-      toast.success('Removed from cart');
-    } catch {
-      toast.error('Could not remove item');
-    }
+  const handleRemove = (item) => {
+    removeItem(item.id);
   };
 
-  const handleClear = async () => {
-    try {
-      await clear();
-      toast.success('Cart cleared');
-    } catch {
-      toast.error('Could not clear cart');
-    }
+  const handleClear = () => {
+    clear();
   };
 
   if (loading) return <Loader />;

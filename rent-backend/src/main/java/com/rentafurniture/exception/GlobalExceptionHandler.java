@@ -37,7 +37,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({UserNotFoundException.class, FurnitureNotFoundException.class,
-            CartItemNotFoundException.class, OrderNotFoundException.class, PaymentNotFoundException.class})
+            CartItemNotFoundException.class, OrderNotFoundException.class, PaymentNotFoundException.class,
+            AddressNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildError(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null));
@@ -87,3 +88,4 @@ public class GlobalExceptionHandler {
                         "An unexpected error occurred", request.getRequestURI(), null));
     }
 }
+
