@@ -2,12 +2,24 @@ import { useLocation, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, RefreshCw, ShoppingCart } from 'lucide-react';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 export default function PaymentResultPage() {
   const location = useLocation();
+  const queryClient = useQueryClient();
   const success = location.state?.success;
   const orderId = location.state?.orderId;
   const error = location.state?.error;
+
+  // Invalidate queries on successful payment to update UI state
+  useEffect(() => {
+    if (success && orderId) {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['furniture'] });
+    }
+  }, [success, orderId, queryClient]);
 
   return (
     <div className="container-page flex min-h-[60vh] items-center justify-center py-12">

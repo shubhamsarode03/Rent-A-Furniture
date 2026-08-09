@@ -138,6 +138,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long id, String userEmail) {
         User user = findUserByEmail(userEmail);
         Order order = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
@@ -149,6 +150,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<OrderResponse> getOrdersForUser(String userEmail, Pageable pageable) {
         User user = findUserByEmail(userEmail);
         return orderRepository.findByUserId(user.getId(), pageable)
@@ -239,8 +241,16 @@ public class OrderServiceImpl implements OrderService {
             cartRepository.deleteByUserId(user.getId());
         }
 
-        // If CONFIRMED → CANCELLED, furniture stays RENTED until returned (refund handling in future)
-        // No furniture status change here - handled by return process
+        // If CONFIRMED → CANCELLED, update furniture status back to AVAILABLE
+        if (originalStatus == OrderStatus.CONFIRMED) {
+            for (OrderDetails orderDetails : order.getOrderDetails()) {
+                Furniture furniture = orderDetails.getFurniture();
+                if (furniture.getStatus() == FurnitureStatus.RENTED) {
+                    furniture.setStatus(FurnitureStatus.AVAILABLE);
+                    furnitureRepository.save(furniture);
+                }
+            }
+        }
 
         return toOrderResponse(saved);
     }

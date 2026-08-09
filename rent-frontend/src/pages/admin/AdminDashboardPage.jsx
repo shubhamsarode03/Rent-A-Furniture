@@ -8,15 +8,19 @@ import Loader from '@/components/common/Loader';
 import EmptyState from '@/components/common/EmptyState';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AdminDashboardPage() {
   const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: furnitureData, isLoading: furnitureLoading } = useQuery({
     queryKey: ['furniture'],
     queryFn: furnitureApi.getFurniture,
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: false,
   });
 
   const { data: ordersData, isLoading: ordersLoading } = useQuery({

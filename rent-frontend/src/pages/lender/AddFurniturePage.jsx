@@ -8,9 +8,11 @@ import { useForm } from '@/hooks/useForm';
 import { validateCreateFurniture } from '@/validation/furnitureValidation';
 import { mapApiErrors } from '@/utils/mapApiErrors';
 import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AddFurniturePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const form = useForm({ fname: '', description: '', categoryId: '', pricePerMonth: '', imageUrl: '' }, validateCreateFurniture);
 
@@ -32,6 +34,9 @@ export default function AddFurniturePage() {
         imageUrl: values.imageUrl || undefined,
       });
       toast.success('Furniture added');
+      // Invalidate queries to refresh the listings page
+      await queryClient.invalidateQueries({ queryKey: ['owner-furniture'] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
       navigate('/lender/listings');
     } catch (err) {
       const { formErrors, general } = mapApiErrors(err);

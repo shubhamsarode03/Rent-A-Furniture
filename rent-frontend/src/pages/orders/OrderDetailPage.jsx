@@ -15,9 +15,11 @@ import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/hooks/useAuth';
 import { ORDER_STATUS } from '@/utils/constants';
 import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function OrderDetailPage() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
   const { data: order, loading, error, refetch } = useOrderDetail(id);
   const { user } = useAuth();
   const { create: createPayment, verify: verifyPayment, handleFailure } = usePayment();
@@ -46,6 +48,10 @@ export default function OrderDetailPage() {
         razorpaySignature: rzpResponse.razorpay_signature,
       });
       toast.success('Payment successful!');
+      // Invalidate queries to update order status and furniture availability
+      queryClient.invalidateQueries({ queryKey: ['order', id] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['furniture'] });
       refetch();
     } catch (err) {
       // Handle payment failure
@@ -87,6 +93,10 @@ export default function OrderDetailPage() {
     try {
       await orderApi.cancelOrder(order.id, { reason: 'User cancelled' });
       toast.success('Order cancelled successfully');
+      // Invalidate queries to update order status and furniture availability
+      queryClient.invalidateQueries({ queryKey: ['order', id] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['furniture'] });
       refetch();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to cancel order');
@@ -186,21 +196,26 @@ export default function OrderDetailPage() {
           {/* Order Items */}
           <Card className="p-5">
             <h2 className="mb-4 font-semibold text-brand-900">Items</h2>
-            <ul className="divide-y divide-brand-100">
-              {(order.orderDetails || []).map((d) => {
-                const name = d.fname || d.furnitureName || (d.furniture && d.furniture.fname) || `Item #${d.furnitureId}`;
-                const price = d.pricePerMonth || (d.furniture && d.furniture.pricePerMonth) || 0;
-                return (
-                  <li key={d.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="font-medium text-brand-900">{name}</p>
-                      {d.durationMonths && <p className="text-sm text-brand-500">{d.durationMonths} month(s)</p>}
-                    </div>
-                    <span className="font-semibold text-brand-800">{formatCurrency(price)}/mo</span>
-                  </li>
-                );
-              })}
-            </ul>
+            {(!order.items || order.items.length === 0) ? (
+              <p className="text-brand-500">No items in this order</p>
+            ) : (
+              <ul className="divide-y divide-brand-100">
+                {order.items.map((d) => {
+                  const name = d.furnitureName || d.fname || (d.furniture && d.furniture.fname) || `Item #${d.furnitureId}`;
+                  const price = d.pricePerMonth || (d.furniture && d.furniture.pricePerMonth) || 0;
+                  const duration = d.duration || d.durationMonths || 0;
+                  return (
+                    <li key={d.id} className="flex items-center justify-between py-3">
+                      <div>
+                        <p className="font-medium text-brand-900">{name}</p>
+                        {duration > 0 && <p className="text-sm text-brand-500">{duration} month(s)</p>}
+                      </div>
+                      <span className="font-semibold text-brand-800">{formatCurrency(price)}/mo</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </Card>
         </div>
 

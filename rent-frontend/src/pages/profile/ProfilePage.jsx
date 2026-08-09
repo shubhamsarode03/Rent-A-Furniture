@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Card from '@/components/common/Card';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
+import Badge from '@/components/common/Badge';
 import Loader from '@/components/common/Loader';
 import { mapApiErrors } from '@/utils/mapApiErrors';
 import toast from 'react-hot-toast';
@@ -11,7 +12,7 @@ import toast from 'react-hot-toast';
 export default function ProfilePage() {
   const { user, token } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [values, setValues] = useState({ firstName: '', lastName: '', email: '', mobile: '', dob: '' });
+  const [values, setValues] = useState({ firstName: '', lastName: '', email: '', mobile: '', dob: '', role: '', roles: [] });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -27,6 +28,8 @@ export default function ProfilePage() {
           email: u.email || '',
           mobile: u.mobile || '',
           dob: u.dob || '',
+          role: u.role || '',
+          roles: u.roles || [],
         });
       })
       .catch(() => toast.error('Could not load profile'))
@@ -69,6 +72,18 @@ export default function ProfilePage() {
             <Input label="Last name" name="lastName" value={values.lastName} onChange={handleChange} />
           </div>
           <Input label="Email" name="email" type="email" value={values.email} onChange={handleChange} disabled />
+          <div className="mb-4">
+            <label className="label-base">Roles</label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {values.roles && values.roles.length > 0 ? (
+                values.roles.map((role) => (
+                  <Badge key={role} tone="success">{role}</Badge>
+                ))
+              ) : (
+                <Badge tone="neutral">{values.role || 'No roles assigned'}</Badge>
+              )}
+            </div>
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Mobile" name="mobile" type="tel" value={values.mobile} onChange={handleChange} />
             <Input label="Date of birth" name="dob" type="date" value={values.dob} onChange={handleChange} />

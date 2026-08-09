@@ -5,7 +5,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 
 export default function OrderCard({ order }) {
-  const itemCount = order.orderDetails ? order.orderDetails.length : (order.itemCount || 0);
+  const itemCount = order.items ? order.items.length : (order.orderDetails ? order.orderDetails.length : (order.itemCount || 0));
   return (
     <Link to={`/orders/${order.id}`} className="block">
       <Card className="p-5 transition hover:shadow-card-hover">

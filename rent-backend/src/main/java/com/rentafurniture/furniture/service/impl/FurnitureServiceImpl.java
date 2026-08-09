@@ -126,8 +126,8 @@ public class FurnitureServiceImpl implements FurnitureService {
             throw new InvalidFurnitureStatusException("Cannot delete furniture that is currently rented");
         }
         
-        furniture.setStatus(FurnitureStatus.INACTIVE);
-        furnitureRepository.save(furniture);
+        // Actually delete the furniture instead of setting to INACTIVE
+        furnitureRepository.delete(furniture);
     }
 
     @Override

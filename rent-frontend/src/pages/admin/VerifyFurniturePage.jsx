@@ -24,7 +24,9 @@ export default function VerifyFurniturePage() {
     try {
       await furnitureApi.approveFurniture(item.id);
       toast.success(`${item.fname} approved`);
-      queryClient.invalidateQueries({ queryKey: ['admin-furniture'] });
+      // Invalidate both admin-furniture and furniture queries to update dashboard and browse page
+      await queryClient.invalidateQueries({ queryKey: ['admin-furniture'] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
     } catch {
       toast.error('Could not approve listing');
     }
@@ -35,7 +37,9 @@ export default function VerifyFurniturePage() {
     try {
       await furnitureApi.rejectFurniture(item.id);
       toast.success(`${item.fname} rejected`);
-      queryClient.invalidateQueries({ queryKey: ['admin-furniture'] });
+      // Invalidate both admin-furniture and furniture queries to update dashboard and browse page
+      await queryClient.invalidateQueries({ queryKey: ['admin-furniture'] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
     } catch {
       toast.error('Could not reject listing');
     }

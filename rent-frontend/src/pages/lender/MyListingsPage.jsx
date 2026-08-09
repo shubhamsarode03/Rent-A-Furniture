@@ -24,19 +24,23 @@ export default function MyListingsPage() {
   const [page, setPage] = useState(0);
   const { data: items, loading, error, refetch } = useOwnerFurniture(null, '', page);
 
+  // Filter out INACTIVE items from display
+  const activeItems = items?.content?.filter(item => item.status !== 'INACTIVE') || items?.filter(item => item.status !== 'INACTIVE') || [];
+
   const handleDelete = async (item) => {
     if (!confirm(`Delete "${item.fname}"?`)) return;
     try {
       await furnitureApi.deleteFurniture(item.id);
       toast.success('Listing deleted');
-      refetch();
-    } catch {
-      toast.error('Could not delete listing');
+      await refetch();
+    } catch (err) {
+      const error = err.response?.data?.message || 'Could not delete listing';
+      toast.error(error);
     }
   };
 
   // Handle paginated responses
-  const itemsList = items?.content || items || [];
+  const itemsList = activeItems;
   const totalPages = items?.totalPages || 1;
 
   return (
@@ -78,10 +82,18 @@ export default function MyListingsPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link to={`/lender/edit/${item.id}`} className="mr-2 inline-flex items-center gap-1 text-brand-600 hover:text-brand-800">
+                      <Link 
+                        to={`/lender/edit/${item.id}`} 
+                        className={`mr-2 inline-flex items-center gap-1 ${item.status === 'RENTED' ? 'text-brand-300 cursor-not-allowed' : 'text-brand-600 hover:text-brand-800'}`}
+                        onClick={(e) => item.status === 'RENTED' && e.preventDefault()}
+                      >
                         <Pencil className="h-4 w-4" /> Edit
                       </Link>
-                      <button onClick={() => handleDelete(item)} className="inline-flex items-center gap-1 text-error-600 hover:text-error-700">
+                      <button 
+                        onClick={() => handleDelete(item)} 
+                        className={`inline-flex items-center gap-1 ${item.status === 'RENTED' ? 'text-brand-300 cursor-not-allowed' : 'text-error-600 hover:text-error-700'}`}
+                        disabled={item.status === 'RENTED'}
+                      >
                         <Trash2 className="h-4 w-4" /> Delete
                       </button>
                     </td>

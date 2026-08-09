@@ -12,6 +12,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Plus, MapPin, X, Calendar } from 'lucide-react';
 
@@ -19,6 +20,7 @@ export default function CheckoutPage() {
   const { data: cart, loading } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { create: createPayment, verify: verifyPayment, handleFailure } = usePayment();
   const { openCheckout } = useRazorpay();
   const { data: addresses, isLoading: addressesLoading, createAddress } = useAddress();
@@ -128,6 +130,10 @@ export default function CheckoutPage() {
       });
 
       toast.success('Payment successful!');
+      // Invalidate queries to update order status and furniture availability
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['order', order.id] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
       navigate('/payment/result', { state: { success: true, orderId: order.id } });
     } catch (err) {
       // Handle payment failure - call failure endpoint
