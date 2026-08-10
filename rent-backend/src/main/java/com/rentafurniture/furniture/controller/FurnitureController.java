@@ -63,6 +63,11 @@ public class FurnitureController {
         return ResponseEntity.ok(furnitureService.getPublicFurniture(categoryId, minPrice, maxPrice, search, pageable));
     }
 
+    @GetMapping("/public/{id}")
+    public ResponseEntity<FurnitureResponse> getPublicFurnitureById(@PathVariable Long id) {
+        return ResponseEntity.ok(furnitureService.getPublicFurnitureById(id));
+    }
+
     @GetMapping("/owner")
     @PreAuthorize("hasRole('LENDER')")
     public ResponseEntity<Page<FurnitureResponse>> getOwnerFurniture(

@@ -12,6 +12,7 @@ import java.util.List;
 public interface FurnitureService {
     FurnitureResponse createFurniture(FurnitureRequest request, String ownerEmail);
     FurnitureResponse getFurnitureById(Long id, String userEmail);
+    FurnitureResponse getPublicFurnitureById(Long id);
     Page<FurnitureResponse> getPublicFurniture(Long categoryId, BigDecimal minPrice, BigDecimal maxPrice, String search, Pageable pageable);
     Page<FurnitureResponse> getAllFurnitureForOwner(String ownerEmail, FurnitureStatus status, String search, Pageable pageable);
     Page<FurnitureResponse> getAllFurnitureForAdmin(FurnitureStatus status, String search, Pageable pageable);

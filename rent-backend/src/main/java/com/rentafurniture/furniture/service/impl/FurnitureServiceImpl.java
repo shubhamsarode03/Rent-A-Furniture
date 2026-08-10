@@ -70,6 +70,18 @@ public class FurnitureServiceImpl implements FurnitureService {
     }
 
     @Override
+    public FurnitureResponse getPublicFurnitureById(Long id) {
+        Furniture furniture = findById(id);
+        
+        // Only return AVAILABLE furniture for public access
+        if (furniture.getStatus() != FurnitureStatus.AVAILABLE) {
+            throw new FurnitureNotFoundException(id);
+        }
+        
+        return furnitureMapper.toResponse(furniture);
+    }
+
+    @Override
     public Page<FurnitureResponse> getPublicFurniture(Long categoryId, BigDecimal minPrice, BigDecimal maxPrice, String search, Pageable pageable) {
         return furnitureRepository.findPublicFurniture(FurnitureStatus.AVAILABLE, categoryId, minPrice, maxPrice, search, pageable)
                 .map(furnitureMapper::toResponse);

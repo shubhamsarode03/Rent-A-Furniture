@@ -7,6 +7,10 @@ export const furnitureApi = {
     const res = await api.get('/furniture/public', { params: cleanParams });
     return res.data;
   },
+  getPublicFurnitureById: async (id) => {
+    const res = await api.get(`/furniture/public/${id}`);
+    return res.data;
+  },
   getOwnerFurniture: async (params) => {
     const res = await api.get('/furniture/owner', { params });
     return res.data;
