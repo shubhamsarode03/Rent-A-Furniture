@@ -19,6 +19,7 @@ public class FurnitureResponse {
     private String categoryName;
     private String fname;
     private String description;
+    private String imageUrl;
     private BigDecimal pricePerMonth;
     private FurnitureStatus status;
     private LocalDateTime createdOn;

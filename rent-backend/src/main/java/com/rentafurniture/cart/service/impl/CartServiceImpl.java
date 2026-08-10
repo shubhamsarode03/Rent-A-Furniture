@@ -33,16 +33,13 @@ public class CartServiceImpl implements CartService {
     private final CartMapper cartMapper;
 
     @Override
+    @Transactional
     public CartResponse addToCart(CartItemRequest request, String userEmail) {
         User user = findUserByEmail(userEmail);
         Furniture furniture = furnitureRepository.findById(request.getFurnitureId())
                 .orElseThrow(() -> new FurnitureNotFoundException(request.getFurnitureId()));
 
-        // Validate furniture status
-        if (furniture.getStatus() != FurnitureStatus.AVAILABLE) {
-            throw new InvalidFurnitureStatusException("Furniture is not available for rent. Current status: " + furniture.getStatus());
-        }
-
+        // Allow adding to cart even if RENTED, but validate during checkout
         // Prevent users from adding their own furniture to cart
         if (furniture.getOwner().getId().equals(user.getId())) {
             throw new CannotRentOwnFurnitureException("You cannot rent your own furniture");
@@ -57,6 +54,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CartResponse> getCart(String userEmail) {
         User user = findUserByEmail(userEmail);
         return cartRepository.findByUserId(user.getId()).stream()

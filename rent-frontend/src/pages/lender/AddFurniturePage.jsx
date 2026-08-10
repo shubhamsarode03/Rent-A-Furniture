@@ -16,14 +16,6 @@ export default function AddFurniturePage() {
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const form = useForm({ fname: '', description: '', categoryId: '', pricePerMonth: '', imageUrl: '' }, validateCreateFurniture);
 
-  if (categoriesLoading) {
-    return (
-      <div className="container-page max-w-2xl py-8">
-        <Loader />
-      </div>
-    );
-  }
-
   const onSubmit = async (values) => {
     try {
       await furnitureApi.createFurniture({
@@ -34,7 +26,7 @@ export default function AddFurniturePage() {
         imageUrl: values.imageUrl || undefined,
       });
       toast.success('Furniture added');
-      // Invalidate queries to refresh the listings page
+      // Invalidate all furniture queries to ensure UI reflects latest data
       await queryClient.invalidateQueries({ queryKey: ['owner-furniture'] });
       await queryClient.invalidateQueries({ queryKey: ['furniture'] });
       navigate('/lender/listings');
@@ -44,6 +36,14 @@ export default function AddFurniturePage() {
       if (general) toast.error(general);
     }
   };
+
+  if (categoriesLoading) {
+    return (
+      <div className="container-page max-w-2xl py-8">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="container-page max-w-2xl py-8">

@@ -9,21 +9,11 @@ import OrderStatusBadge from '@/components/orders/OrderStatusBadge';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { ORDER_STATUS_LIST } from '@/utils/constants';
-import toast from 'react-hot-toast';
 
 export default function AllOrdersPage() {
   const [page, setPage] = useState(0);
-  const { data: orders, loading, error, updateStatus } = useOrders(true, page);
+  const { data: orders, loading, error } = useOrders(true, page);
   const [statusFilter, setStatusFilter] = useState('');
-
-  const handleStatusChange = async (orderId, status) => {
-    try {
-      await updateStatus({ orderId, status });
-      toast.success('Order status updated');
-    } catch {
-      toast.error('Could not update status');
-    }
-  };
 
   // Handle paginated responses
   const ordersList = orders?.content || orders || [];
@@ -58,7 +48,6 @@ export default function AllOrdersPage() {
                 <th className="px-4 py-3 font-medium">Date</th>
                 <th className="px-4 py-3 font-medium">Total</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Update</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100">
@@ -68,17 +57,6 @@ export default function AllOrdersPage() {
                   <td className="px-4 py-3 text-brand-600">{formatDate(order.rentedOn || order.createdAt)}</td>
                   <td className="px-4 py-3 text-brand-700">{formatCurrency(order.totalAmount)}</td>
                   <td className="px-4 py-3"><OrderStatusBadge status={order.status} /></td>
-                  <td className="px-4 py-3">
-                    <Select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                      className="w-36"
-                    >
-                      {ORDER_STATUS_LIST.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </Select>
-                  </td>
                 </tr>
               ))}
             </tbody>

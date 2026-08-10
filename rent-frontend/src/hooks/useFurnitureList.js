@@ -6,6 +6,6 @@ export function useFurnitureList(filters = {}, page = 0) {
     queryKey: ['furniture', filters, page],
     queryFn: () => furnitureApi.getPublicFurniture({ ...filters, page, sort: 'createdOn,desc' }),
     keepPreviousData: true,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh data
   });
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
-import { Range, getTrackBackground } from 'react-range';
+import { Range } from 'react-range';
 import Select from '@/components/common/Select';
 import { formatCurrency } from '@/utils/formatCurrency';
 
@@ -21,25 +21,38 @@ export default function FurnitureFilters({
   categories,
 }) {
   const [minPrice, setMinPrice] = useState(
-    filters.minPrice ?? PRICE_MIN
+    filters.minPrice !== undefined ? filters.minPrice : PRICE_MIN
   );
   const [maxPrice, setMaxPrice] = useState(
-    filters.maxPrice ?? PRICE_MAX
+    filters.maxPrice !== undefined ? filters.maxPrice : PRICE_MAX
   );
   const [categoryId, setCategoryId] = useState(
     filters.categoryId ?? ''
   );
-  const [available, setAvailable] = useState(
-    filters.available ?? false
-  );
+  const [selectedPreset, setSelectedPreset] = useState(null);
 
   // Sync local state with incoming filters
   useEffect(() => {
-    setMinPrice(filters.minPrice ?? PRICE_MIN);
-    setMaxPrice(filters.maxPrice ?? PRICE_MAX);
+    const newMin = filters.minPrice !== undefined ? filters.minPrice : PRICE_MIN;
+    const newMax = filters.maxPrice !== undefined ? filters.maxPrice : PRICE_MAX;
+    
+    // Ensure min and max are different and properly ordered
+    if (newMin === newMax) {
+      setMinPrice(PRICE_MIN);
+      setMaxPrice(PRICE_MAX);
+    } else {
+      setMinPrice(newMin);
+      setMaxPrice(newMax);
+    }
+    
     setCategoryId(filters.categoryId ?? '');
-    setAvailable(filters.available ?? false);
-  }, [filters.minPrice, filters.maxPrice, filters.categoryId, filters.available]);
+    
+    // Check if current range matches any preset
+    const matchingPreset = PRESETS.find(
+      preset => preset.min === newMin && preset.max === newMax
+    );
+    setSelectedPreset(matchingPreset ? matchingPreset.label : null);
+  }, [filters.minPrice, filters.maxPrice, filters.categoryId]);
 
   const timerRef = useRef(null);
 
@@ -52,7 +65,6 @@ export default function FurnitureFilters({
     timerRef.current = setTimeout(() => {
       setFilters({
         categoryId: categoryId || undefined,
-        available: available || undefined,
         minPrice,
         maxPrice,
       });
@@ -63,11 +75,38 @@ export default function FurnitureFilters({
         clearTimeout(timerRef.current);
       }
     };
-  }, [minPrice, maxPrice, categoryId, available, setFilters]);
+  }, [minPrice, maxPrice, categoryId, setFilters]);
 
   const handlePreset = (preset) => {
-    setMinPrice(preset.min);
-    setMaxPrice(preset.max);
+    // If clicking the same preset, deselect it and reset to default
+    if (selectedPreset === preset.label) {
+      setMinPrice(PRICE_MIN);
+      setMaxPrice(PRICE_MAX);
+      setSelectedPreset(null);
+    } else {
+      setMinPrice(preset.min);
+      setMaxPrice(preset.max);
+      setSelectedPreset(preset.label);
+    }
+  };
+
+  const handleSliderChange = ([min, max]) => {
+    // Ensure min and max don't overlap and maintain proper order
+    const safeMin = Math.min(min, max);
+    const safeMax = Math.max(min, max);
+    
+    // Ensure they're at least one step apart
+    const minWithStep = Math.min(safeMin, safeMax - STEP);
+    const maxWithStep = Math.max(safeMax, safeMin + STEP);
+    
+    setMinPrice(minWithStep);
+    setMaxPrice(maxWithStep);
+    
+    // Check if the new range matches any preset
+    const matchingPreset = PRESETS.find(
+      preset => preset.min === minWithStep && preset.max === maxWithStep
+    );
+    setSelectedPreset(matchingPreset ? matchingPreset.label : null);
   };
 
   return (
@@ -102,9 +141,7 @@ export default function FurnitureFilters({
 
           <div className="mb-4 flex items-center justify-between text-sm font-medium text-brand-700">
             <span>{formatCurrency(minPrice)}</span>
-
             <span className="text-brand-300">–</span>
-
             <span>{formatCurrency(maxPrice)}</span>
           </div>
 
@@ -113,41 +150,46 @@ export default function FurnitureFilters({
             step={STEP}
             min={PRICE_MIN}
             max={PRICE_MAX}
-            onChange={([min, max]) => {
-              setMinPrice(min);
-              setMaxPrice(max);
-            }}
+            onChange={handleSliderChange}
+            allowOverlap={false}
             renderTrack={({ props, children }) => (
               <div
                 onMouseDown={props.onMouseDown}
                 onTouchStart={props.onTouchStart}
-                className="flex h-8 w-full items-center"
+                className="relative flex h-8 w-full items-center"
               >
                 <div
                   ref={props.ref}
-                  className="h-2 w-full rounded-full"
-                  style={{
-                    background: getTrackBackground({
-                      values: [minPrice, maxPrice],
-                      colors: [
-                        '#dbeafe',
-                        '#2563eb',
-                        '#dbeafe',
-                      ],
-                      min: PRICE_MIN,
-                      max: PRICE_MAX,
-                    }),
-                  }}
+                  className="h-2 w-full rounded-full bg-brand-100"
                 >
+                  <div
+                    className="absolute h-2 rounded-full bg-brand-600"
+                    style={{
+                      left: `${((minPrice - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100}%`,
+                      width: `${((maxPrice - minPrice) / (PRICE_MAX - PRICE_MIN)) * 100}%`,
+                    }}
+                  />
                   {children}
                 </div>
               </div>
             )}
-            renderThumb={({ props, isDragged }) => (
+            renderThumb={({ props, isDragged, index }) => (
               <div
-                {...props}
-                className={`h-5 w-5 rounded-full border-2 border-brand-600 bg-white shadow-md transition-transform focus:outline-none focus:ring-2 focus:ring-brand-300 ${
-                  isDragged ? 'scale-110' : ''
+                key={index}
+                style={props.style}
+                tabIndex={props.tabIndex}
+                aria-valuemax={props.ariaValuemax}
+                aria-valuemin={props.ariaValuemin}
+                aria-valuenow={props.ariaValuenow}
+                draggable={props.draggable}
+                ref={props.ref}
+                aria-label={props.ariaLabel}
+                aria-labelledby={props.ariaLabelledby}
+                role={props.role}
+                onKeyDown={props.onKeyDown}
+                onKeyUp={props.onKeyUp}
+                className={`h-4 w-4 rounded-full border-2 border-brand-600 bg-white shadow-md transition-transform focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2 ${
+                  isDragged ? 'scale-110 shadow-lg' : 'hover:scale-105'
                 }`}
               />
             )}
@@ -164,26 +206,17 @@ export default function FurnitureFilters({
                 key={preset.label}
                 type="button"
                 onClick={() => handlePreset(preset)}
-                className="rounded-full border border-brand-200 px-3 py-1 text-xs font-medium text-brand-700 transition hover:bg-brand-100"
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                  selectedPreset === preset.label
+                    ? 'border-brand-600 bg-brand-600 text-white hover:bg-brand-700'
+                    : 'border-brand-200 text-brand-700 hover:bg-brand-100'
+                }`}
               >
                 {preset.label}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Availability */}
-        <label className="flex items-center gap-2 text-sm text-brand-700">
-          <input
-            type="checkbox"
-            checked={available}
-            onChange={(e) =>
-              setAvailable(e.target.checked)
-            }
-            className="h-4 w-4 rounded border-brand-300 accent-brand-600"
-          />
-          Available only
-        </label>
       </div>
     </div>
   );

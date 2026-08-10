@@ -6,12 +6,23 @@ import EmptyState from '@/components/common/EmptyState';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { formatCurrency } from '@/utils/formatCurrency';
+import toast from 'react-hot-toast';
 
 export default function CartPage() {
-  const { data: cart, loading, removeItem, clear } = useCart();
+  const { data: cart, isLoading, removeItem, clear } = useCart();
   const navigate = useNavigate();
   const items = Array.isArray(cart) ? cart : [];
-  const total = items.reduce((sum, i) => {
+  
+  // Check if any items are RENTED
+  const hasRentedItems = items.some(item => 
+    item.status === 'RENTED' || (item.furniture && item.furniture.status === 'RENTED')
+  );
+  
+  const availableItems = items.filter(item => 
+    !(item.status === 'RENTED' || (item.furniture && item.furniture.status === 'RENTED'))
+  );
+  
+  const total = availableItems.reduce((sum, i) => {
     const price = i.pricePerMonth || (i.furniture && i.furniture.pricePerMonth) || 0;
     return sum + Number(price || 0);
   }, 0);
@@ -24,7 +35,15 @@ export default function CartPage() {
     clear();
   };
 
-  if (loading) return <Loader />;
+  const handleCheckout = () => {
+    if (hasRentedItems) {
+      toast.error('Cannot checkout. Some items in your cart are already rented. Please remove them first.');
+      return;
+    }
+    navigate('/checkout');
+  };
+
+  if (isLoading) return <Loader />;
 
   return (
     <div className="container-page py-8">
@@ -42,10 +61,21 @@ export default function CartPage() {
           <Card className="h-fit p-5">
             <h2 className="mb-4 font-semibold text-brand-900">Order summary</h2>
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-brand-600">Subtotal ({items.length} items)</span>
+              <span className="text-brand-600">Subtotal ({availableItems.length} items)</span>
               <span className="font-semibold text-brand-800">{formatCurrency(total)}</span>
             </div>
-            <Button onClick={() => navigate('/checkout')} className="w-full">Proceed to checkout</Button>
+            {hasRentedItems && (
+              <div className="mb-4 rounded-lg bg-brand-50 p-3 text-sm text-brand-600">
+                Some items are already rented and cannot be checked out.
+              </div>
+            )}
+            <Button 
+              onClick={handleCheckout} 
+              className="w-full"
+              disabled={availableItems.length === 0}
+            >
+              Proceed to checkout
+            </Button>
           </Card>
         </div>
       )}

@@ -5,18 +5,19 @@ import toast from 'react-hot-toast';
 
 export function useAddress() {
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userId = user?.id;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['addresses'],
+    queryKey: ['addresses', userId],
     queryFn: addressApi.getAddresses,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!userId,
   });
 
   const createAddressMutation = useMutation({
     mutationFn: addressApi.createAddress,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['addresses', userId] });
       toast.success('Address added successfully');
     },
     onError: (error) => {
@@ -28,7 +29,7 @@ export function useAddress() {
   const updateAddressMutation = useMutation({
     mutationFn: ({ id, data }) => addressApi.updateAddress(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['addresses', userId] });
       toast.success('Address updated successfully');
     },
     onError: (error) => {
@@ -40,7 +41,7 @@ export function useAddress() {
   const deleteAddressMutation = useMutation({
     mutationFn: addressApi.deleteAddress,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['addresses'] });
+      queryClient.invalidateQueries({ queryKey: ['addresses', userId] });
       toast.success('Address deleted successfully');
     },
     onError: (error) => {

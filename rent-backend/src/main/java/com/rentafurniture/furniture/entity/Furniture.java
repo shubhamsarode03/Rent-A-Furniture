@@ -23,7 +23,7 @@ public class Furniture {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
@@ -36,6 +36,9 @@ public class Furniture {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 
     @Column(name = "price_per_month", nullable = false, precision = 10, scale = 2)
     private BigDecimal pricePerMonth;

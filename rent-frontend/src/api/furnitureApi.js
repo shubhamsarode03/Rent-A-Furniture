@@ -2,7 +2,9 @@ import api from './axiosInstance';
 
 export const furnitureApi = {
   getPublicFurniture: async (params) => {
-    const res = await api.get('/furniture/public', { params });
+    // Remove 'available' parameter since backend only returns AVAILABLE furniture
+    const { available, ...cleanParams } = params;
+    const res = await api.get('/furniture/public', { params: cleanParams });
     return res.data;
   },
   getOwnerFurniture: async (params) => {

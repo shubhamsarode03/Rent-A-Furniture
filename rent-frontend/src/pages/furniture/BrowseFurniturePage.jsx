@@ -14,12 +14,19 @@ export default function BrowseFurniturePage() {
   const { user, permissions } = useAuth();
   const canAdd = Boolean(user) && permissions.canUseCart;
   const { addItem } = useCart();
+  const { data: cart } = useCart();
   const { data: categories } = useCategories();
   
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState({});
 
   const { data, isLoading, error } = useFurnitureList(filters, page);
+
+  // Check if item is already in cart
+  const isInCart = (furnitureId) => {
+    const cartItems = Array.isArray(cart) ? cart : [];
+    return cartItems.some(item => item.furnitureId === furnitureId);
+  };
 
   const handleAddToCart = async (item) => {
     try {
@@ -54,6 +61,11 @@ export default function BrowseFurniturePage() {
   const furnitureItems = data?.content || [];
   const totalPages = data?.totalPages || 1;
 
+  // Filter out lender's own furniture
+  const availableFurniture = user?.role === 'LENDER' 
+    ? furnitureItems.filter(item => item.ownerId !== user.id)
+    : furnitureItems;
+
   return (
     <div className="container-page py-8">
       <div className="mb-6">
@@ -63,17 +75,24 @@ export default function BrowseFurniturePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
         <aside>
-          <FurnitureFilters filters={filters} setFilters={handleFilterChange} categories={categories} />
+          <FurnitureFilters filters={filters} setFilters={handleFilterChange} categories={categories || []} />
         </aside>
 
         <section>
-          {furnitureItems.length === 0 ? (
+          {availableFurniture.length === 0 ? (
             <EmptyState title="No furniture found" message="Try adjusting your filters." />
           ) : (
             <>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {furnitureItems.map((item) => (
-                  <FurnitureCard key={item.id} item={item} onAddToCart={handleAddToCart} canAdd={canAdd} />
+                {availableFurniture.map((item) => (
+                  <FurnitureCard 
+                    key={item.id} 
+                    item={item} 
+                    onAddToCart={handleAddToCart} 
+                    canAdd={canAdd} 
+                    currentUserId={user?.id}
+                    isInCart={isInCart(item.id)}
+                  />
                 ))}
               </div>
               <div className="mt-8">

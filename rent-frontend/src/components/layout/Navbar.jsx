@@ -50,7 +50,9 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 overflow-x-auto lg:flex lg:overflow-visible">
-          <NavLink to="/" className={navLinkClass} end>Browse</NavLink>
+          {role !== ROLES.ADMIN && (
+            <NavLink to="/" className={navLinkClass} end>Browse</NavLink>
+          )}
 
           {isAuthenticated && permissions.canManageFurniture && (
             <NavLink to="/lender/listings" className={emphasizedClass}>
@@ -109,7 +111,9 @@ export default function Navbar() {
       {mobileOpen && (
         <nav className="border-t border-brand-100 bg-white px-4 py-3 md:hidden">
           <div className="flex flex-col gap-1">
-            <NavLink to="/" className={navLinkClass} end onClick={() => setMobileOpen(false)}>Browse</NavLink>
+            {role !== ROLES.ADMIN && (
+              <NavLink to="/" className={navLinkClass} end onClick={() => setMobileOpen(false)}>Browse</NavLink>
+            )}
             {isAuthenticated && permissions.canManageFurniture && (
               <NavLink to="/lender/listings" className={navLinkClass} onClick={() => setMobileOpen(false)}>My Listings</NavLink>
             )}

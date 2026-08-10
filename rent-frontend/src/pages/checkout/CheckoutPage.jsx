@@ -80,6 +80,17 @@ export default function CheckoutPage() {
       toast.error('Please select a delivery address');
       return;
     }
+    
+    // Check if any items are RENTED
+    const rentedItems = items.filter(item => 
+      item.status === 'RENTED' || (item.furniture && item.furniture.status === 'RENTED')
+    );
+    
+    if (rentedItems.length > 0) {
+      toast.error('Some items in your cart are already rented. Please remove them first.');
+      return;
+    }
+    
     setEmptyError(false);
     setSubmitting(true);
     let order = null;
@@ -130,10 +141,6 @@ export default function CheckoutPage() {
       });
 
       toast.success('Payment successful!');
-      // Invalidate queries to update order status and furniture availability
-      await queryClient.invalidateQueries({ queryKey: ['orders'] });
-      await queryClient.invalidateQueries({ queryKey: ['order', order.id] });
-      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
       navigate('/payment/result', { state: { success: true, orderId: order.id } });
     } catch (err) {
       // Handle payment failure - call failure endpoint
@@ -144,6 +151,10 @@ export default function CheckoutPage() {
           console.error('Failed to record payment failure:', failureErr);
         }
       }
+
+      // Invalidate queries to update order status after payment failure
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['order', order?.id] });
 
       const msg = err?.message === 'Payment cancelled' ? 'Payment cancelled' : 'Checkout failed';
       toast.error(msg);

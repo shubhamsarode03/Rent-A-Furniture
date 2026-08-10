@@ -11,9 +11,11 @@ const statusMap = {
   INACTIVE: { label: 'Inactive', tone: 'neutral', available: false },
 };
 
-export default function FurnitureCard({ item, onAddToCart, canAdd = false }) {
+export default function FurnitureCard({ item, onAddToCart, canAdd = false, currentUserId = null, isInCart = false }) {
   const statusInfo = statusMap[item.status] || { label: item.status, tone: 'neutral', available: false };
   const isAvailable = statusInfo.available;
+  const isOwnListing = currentUserId && item.ownerId === currentUserId;
+  const isDisabled = isInCart || !isAvailable || isOwnListing;
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-brand-100 bg-white shadow-card transition hover:shadow-card-hover">
@@ -42,12 +44,30 @@ export default function FurnitureCard({ item, onAddToCart, canAdd = false }) {
         <p className="mb-4 line-clamp-2 flex-1 text-sm text-brand-500">{item.description}</p>
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-brand-800">{formatCurrency(item.pricePerMonth)}<span className="text-xs font-normal text-brand-400">/mo</span></span>
-          {canAdd && isAvailable && (
+          {canAdd && isAvailable && !isOwnListing && !isDisabled && (
             <button
               onClick={() => onAddToCart(item)}
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
             >
               <ShoppingCart className="h-4 w-4" /> Add
+            </button>
+          )}
+          {canAdd && isAvailable && isOwnListing && (
+            <button
+              disabled
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-300 px-3 py-2 text-sm font-medium text-brand-500 cursor-not-allowed"
+              title="You cannot add your own furniture to cart"
+            >
+              <ShoppingCart className="h-4 w-4" /> Own Listing
+            </button>
+          )}
+          {canAdd && isInCart && (
+            <button
+              disabled
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-300 px-3 py-2 text-sm font-medium text-brand-500 cursor-not-allowed"
+              title="Already in cart"
+            >
+              <ShoppingCart className="h-4 w-4" /> In Cart
             </button>
           )}
         </div>

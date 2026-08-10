@@ -10,6 +10,7 @@ import EmptyState from '@/components/common/EmptyState';
 import Pagination from '@/components/common/Pagination';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useOwnerFurniture } from '@/hooks/useOwnerFurniture';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
 const statusMap = {
@@ -21,27 +22,27 @@ const statusMap = {
 };
 
 export default function MyListingsPage() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
-  const { data: items, loading, error, refetch } = useOwnerFurniture(null, '', page);
+  const { data, isLoading, error } = useOwnerFurniture(null, '', page);
 
   // Filter out INACTIVE items from display
-  const activeItems = items?.content?.filter(item => item.status !== 'INACTIVE') || items?.filter(item => item.status !== 'INACTIVE') || [];
+  const activeItems = data?.content?.filter(item => item.status !== 'INACTIVE') || [];
+  const totalPages = data?.totalPages || 1;
 
   const handleDelete = async (item) => {
     if (!confirm(`Delete "${item.fname}"?`)) return;
     try {
       await furnitureApi.deleteFurniture(item.id);
       toast.success('Listing deleted');
-      await refetch();
+      // Invalidate all furniture queries to ensure UI reflects latest data
+      await queryClient.invalidateQueries({ queryKey: ['owner-furniture'] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
     } catch (err) {
       const error = err.response?.data?.message || 'Could not delete listing';
       toast.error(error);
     }
   };
-
-  // Handle paginated responses
-  const itemsList = activeItems;
-  const totalPages = items?.totalPages || 1;
 
   return (
     <div className="container-page py-8">
@@ -53,11 +54,11 @@ export default function MyListingsPage() {
         <Link to="/lender/add"><Button><Plus className="h-4 w-4" /> Add furniture</Button></Link>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <Loader />
       ) : error ? (
         <EmptyState title="Could not load listings" message="Please try again later." />
-      ) : itemsList.length === 0 ? (
+      ) : activeItems.length === 0 ? (
         <EmptyState title="No listings yet" message="Add your first piece of furniture to rent." action={<Link to="/lender/add"><Button>Add furniture</Button></Link>} />
       ) : (
         <>
@@ -72,7 +73,7 @@ export default function MyListingsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-100">
-                {itemsList.map((item) => (
+                {activeItems.map((item) => (
                   <tr key={item.id} className="hover:bg-brand-50/50">
                     <td className="px-4 py-3 font-medium text-brand-900">{item.fname}</td>
                     <td className="px-4 py-3 text-brand-700">{formatCurrency(item.pricePerMonth)}/mo</td>

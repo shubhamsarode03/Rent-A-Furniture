@@ -5,19 +5,20 @@ import toast from 'react-hot-toast';
 
 export function useCart() {
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userId = user?.id;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['cart'],
+    queryKey: ['cart', userId],
     queryFn: cartApi.getCart,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!userId,
     staleTime: 0, // Always fresh cart data
   });
 
   const addToCartMutation = useMutation({
     mutationFn: cartApi.addToCart,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['cart', userId] });
       toast.success('Product added to cart successfully');
     },
     onError: (error) => {
@@ -29,7 +30,7 @@ export function useCart() {
   const removeFromCartMutation = useMutation({
     mutationFn: cartApi.removeFromCart,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['cart', userId] });
       toast.success('Removed from cart');
     },
     onError: (error) => {
@@ -41,7 +42,7 @@ export function useCart() {
   const clearCartMutation = useMutation({
     mutationFn: cartApi.clearCart,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['cart', userId] });
       toast.success('Cart cleared');
     },
     onError: (error) => {

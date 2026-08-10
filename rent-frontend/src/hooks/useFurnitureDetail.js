@@ -8,7 +8,7 @@ export function useFurnitureDetail(id) {
   const query = useQuery({
     queryKey: ['furniture', id],
     queryFn: () => furnitureApi.getFurnitureById(id),
-    enabled: !!id && isAuthenticated,
+    enabled: !!id, // This is public data, doesn't require authentication
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

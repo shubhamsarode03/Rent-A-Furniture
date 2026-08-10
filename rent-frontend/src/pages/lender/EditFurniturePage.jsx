@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { furnitureApi } from '@/api/furnitureApi';
 import { useCategories } from '@/hooks/useCategories';
+import { useQueryClient } from '@tanstack/react-query';
 import FurnitureForm from '@/components/furniture/FurnitureForm';
 import Card from '@/components/common/Card';
 import Loader from '@/components/common/Loader';
@@ -13,13 +14,10 @@ import toast from 'react-hot-toast';
 export default function EditFurniturePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const [loading, setLoading] = useState(true);
   const form = useForm({ fname: '', description: '', categoryId: '', pricePerMonth: '', imageUrl: '' }, validateEditFurniture);
-
-  if (categoriesLoading) {
-    return <Loader />;
-  }
 
   useEffect(() => {
     let active = true;
@@ -48,6 +46,10 @@ export default function EditFurniturePage() {
         imageUrl: values.imageUrl || undefined,
       });
       toast.success('Listing updated');
+      // Invalidate all furniture queries to ensure UI reflects latest data
+      await queryClient.invalidateQueries({ queryKey: ['owner-furniture'] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture'] });
+      await queryClient.invalidateQueries({ queryKey: ['furniture', id] });
       navigate('/lender/listings');
     } catch (err) {
       const { formErrors, general } = mapApiErrors(err);
@@ -56,7 +58,7 @@ export default function EditFurniturePage() {
     }
   };
 
-  if (loading) return <Loader />;
+  if (loading || categoriesLoading) return <Loader />;
 
   return (
     <div className="container-page max-w-2xl py-8">

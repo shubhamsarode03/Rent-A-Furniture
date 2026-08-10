@@ -48,10 +48,6 @@ export default function OrderDetailPage() {
         razorpaySignature: rzpResponse.razorpay_signature,
       });
       toast.success('Payment successful!');
-      // Invalidate queries to update order status and furniture availability
-      queryClient.invalidateQueries({ queryKey: ['order', id] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['furniture'] });
       refetch();
     } catch (err) {
       // Handle payment failure
@@ -62,6 +58,9 @@ export default function OrderDetailPage() {
           console.error('Failed to record payment failure:', failureErr);
         }
       }
+      // Invalidate queries to update order status after payment failure
+      queryClient.invalidateQueries({ queryKey: ['order', id] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.error(err?.message === 'Payment cancelled' ? 'Payment cancelled' : 'Payment failed');
       refetch();
     } finally {
