@@ -19,6 +19,8 @@ public class FurnitureRequest {
 
     private String description;
 
+    private String imageUrl;
+
     @NotNull(message = "Price per month is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal pricePerMonth;

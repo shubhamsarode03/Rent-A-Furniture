@@ -13,5 +13,6 @@ public interface FurnitureMapper {
     @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "category.name", target = "categoryName")
     @Mapping(source = "status", target = "status")
+    @Mapping(source = "imageUrl", target = "imageUrl")
     FurnitureResponse toResponse(Furniture furniture);
 }

@@ -45,12 +45,19 @@ export default function FurnitureDetailPage() {
       </Link>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="overflow-hidden rounded-xl border border-brand-100 bg-brand-100">
+        <div className="flex items-center justify-center">
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={item.fname} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-72 items-center justify-center text-brand-400">No image available</div>
-          )}
+            <img 
+              src={item.imageUrl} 
+              alt={item.fname} 
+              className="max-w-full max-h-[420px] w-auto h-auto object-contain rounded-lg"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div className={`flex items-center justify-center text-brand-400 ${item.imageUrl ? 'hidden' : ''}`} style={{ minHeight: '300px' }}>No image available</div>
         </div>
 
         <div>

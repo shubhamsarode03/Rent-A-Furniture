@@ -48,6 +48,7 @@ public class FurnitureServiceImpl implements FurnitureService {
                 .category(category)
                 .fname(request.getFname())
                 .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
                 .pricePerMonth(request.getPricePerMonth())
                 .status(FurnitureStatus.PENDING_APPROVAL)
                 .build();
@@ -118,6 +119,7 @@ public class FurnitureServiceImpl implements FurnitureService {
         furniture.setCategory(findCategoryById(request.getCategoryId()));
         furniture.setFname(request.getFname());
         furniture.setDescription(request.getDescription());
+        furniture.setImageUrl(request.getImageUrl());
         furniture.setPricePerMonth(request.getPricePerMonth());
         
         return furnitureMapper.toResponse(furnitureRepository.save(furniture));

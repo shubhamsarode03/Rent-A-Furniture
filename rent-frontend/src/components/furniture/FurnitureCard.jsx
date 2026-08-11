@@ -21,12 +21,19 @@ export default function FurnitureCard({ item, onAddToCart, canAdd = false, curre
     <div className="group flex flex-col overflow-hidden rounded-xl border border-brand-100 bg-white shadow-card transition hover:shadow-card-hover">
       <Link to={`/furniture/${item.id}`} className="relative block aspect-[4/3] overflow-hidden bg-brand-100">
         {item.imageUrl ? (
-          <img src={item.imageUrl} alt={item.fname} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-brand-100 text-brand-300">
-            <span className="text-sm">No image</span>
-          </div>
-        )}
+          <img 
+            src={item.imageUrl} 
+            alt={item.fname} 
+            className="h-full w-full object-contain transition duration-300 group-hover:scale-105 p-2"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextElementSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div className={`flex h-full items-center justify-center bg-brand-100 text-brand-300 ${item.imageUrl ? 'hidden' : ''}`}>
+          <span className="text-sm">No image</span>
+        </div>
         {item.status === 'AVAILABLE' && (
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-accent-700">
             <BadgeCheck className="h-3.5 w-3.5" /> Verified
